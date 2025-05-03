@@ -29,6 +29,10 @@
                 <input name="email" type="email" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700" required>
             </div>
             <div class="mb-4">
+                <label class="block text-gray-700 text-sm font-bold mb-2">Student ID</label>
+                <input name="student_id" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700" required>
+            </div>
+            <div class="mb-4">
                 <label class="block text-gray-700 text-sm font-bold mb-2">Password</label>
                 <input name="password" type="password" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700" required>
             </div>
@@ -40,12 +44,12 @@
                 Register
             </button>
         </form>
-<p class="text-center mt-4 text-sm">
-    Already have an account?
-    <a href="{{ route('login') }}" class="text-blue-600 hover:underline">
-        Log in
-    </a>
-</p>
+        <p class="text-center mt-4 text-sm">
+            Already have an account?
+            <a href="{{ route('login') }}" class="text-blue-600 hover:underline">
+                Log in
+            </a>
+        </p>
 
         @if ($errors->any())
             <div class="mt-4 text-red-600 text-sm">
