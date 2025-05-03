@@ -2,47 +2,49 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\Auth\RegisterController;
+use App\Http\Controllers\Auth\LoginController;
 
-// ✅ Quote Landing Page (always shown first)
+// ✅ Quote Landing Page
 Route::get('/', function () {
     return view('quote-landing');
 })->name('quote.landing');
 
-// ✅ POST: After quotes, allow login
+// ✅ Session control after quote clicks
 Route::post('/go-to-login', function () {
     session(['allow_login' => true]);
     return response()->json(['success' => true]);
 })->name('goToLogin');
 
-// ✅ POST: Set quote session (used by quote-landing for fallback logic or compatibility)
 Route::post('/set-quote-session', function () {
     session(['quote_landing_done' => true]);
     return response()->json(['success' => true]);
 })->name('setQuoteSession');
 
-// ✅ GET: Create Account Choice Page
+// ✅ Account creation flow
 Route::get('/create-account', function () {
     return view('auth.createAccountChoice');
 })->name('create.account');
 
-// ✅ GET: Show Registration Form
-Route::get('/register', function () {
-    return view('auth.register');
-})->name('register');
+// ✅ Register routes
+Route::get('/register', [RegisterController::class, 'showRegistrationForm'])->name('register'); // Changed 'create' to 'showRegistrationForm'
+Route::post('/register', [RegisterController::class, 'register']); // Ensured 'register' method is used here
 
-// ✅ POST: Handle Registration Submission
-Route::post('/register', [AuthController::class, 'register'])->name('register.submit');
+// ✅ Login routes (outside auth middleware)
+Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');
+Route::post('/login', [LoginController::class, 'login'])->name('login.submit');
 
-// ✅ GET: Show Login Page (only allowed after quote landing)
-Route::get('/login', function () {
-    if (!session('allow_login')) {
-        return redirect()->route('quote.landing');
-    }
-    return app(AuthController::class)->showAuthPage();
-})->name('login');
-
-// ✅ POST: Handle Login Submission
-Route::post('/login', [AuthController::class, 'login'])->name('login.submit');
-
-// ✅ POST: Handle Logout
+// ✅ Logout
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
+
+// ✅ Authenticated routes
+Route::middleware(['auth'])->group(function () {
+    Route::get('/dashboard', function () {
+        return view('dashboard');
+    })->name('dashboard');
+
+    Route::put('/dashboard/clear-fields', [DashboardController::class, 'clearfields'])->name('dashboard.clearfields');
+    Route::put('/dashboard/update', [DashboardController::class, 'update'])->name('dashboard.update');
+    Route::delete('/dashboard/delete', [DashboardController::class, 'destroy'])->name('dashboard.destroy');
+});

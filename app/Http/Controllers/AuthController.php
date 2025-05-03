@@ -25,13 +25,13 @@ class AuthController extends Controller
     public function login(Request $request)
     {
         $request->validate([
-            'username' => 'required|string',
-            'password' => 'required|string',
-        ], [
-            'username.required' => 'Username is required for login.',
-            'password.required' => 'Password is required for login.',
+            'firstname' => 'required|string',
+            'lastname' => 'required|string',
+            'username' => 'required|string|unique:users',
+            'email' => 'required|string|email|unique:users',
+            'password' => 'required|string|confirmed',
         ]);
-
+        
         if (Auth::attempt([
             'username' => $request->username,
             'password' => $request->password
@@ -77,9 +77,12 @@ class AuthController extends Controller
     /**
      * Logout the user.
      */
-    public function logout()
+    public function logout(Request $request)
     {
         Auth::logout();
-        return redirect('/login'); // or redirect('/') depending on your design
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
+    
+        return redirect()->route('login'); // Redirect to login after logout
     }
 }

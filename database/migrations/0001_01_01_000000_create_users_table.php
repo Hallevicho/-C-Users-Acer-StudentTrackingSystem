@@ -11,27 +11,30 @@ return new class extends Migration
      */
     public function up(): void
     {
+        // Users Table
         Schema::create('users', function (Blueprint $table) {
             $table->id();
-            $table->string('firstname');  // Add firstname
-            $table->string('lastname');   // Add lastname
-            $table->string('username')->unique();  // Add unique username
-            $table->string('email')->unique();
+            $table->string('firstname');                       // ✅ First Name
+            $table->string('lastname');                        // ✅ Last Name
+            $table->string('username')->unique();              // ✅ Unique Username
+            $table->string('email')->unique();                 // ✅ Email
             $table->timestamp('email_verified_at')->nullable();
-            $table->string('password');
-            $table->rememberToken();
+            $table->string('password');                        // ✅ Password
+            $table->rememberToken();                           // ✅ Remember Token
             $table->timestamps();
         });
 
+        // Password Reset Tokens Table
         Schema::create('password_reset_tokens', function (Blueprint $table) {
-            $table->string('email')->primary();
+            $table->string('email')->primary();                // ✅ Primary key on email
             $table->string('token');
             $table->timestamp('created_at')->nullable();
         });
 
+        // Sessions Table
         Schema::create('sessions', function (Blueprint $table) {
             $table->string('id')->primary();
-            $table->foreignId('user_id')->nullable()->index();
+            $table->foreignId('user_id')->nullable()->index(); // ✅ Link to users table
             $table->string('ip_address', 45)->nullable();
             $table->text('user_agent')->nullable();
             $table->longText('payload');
