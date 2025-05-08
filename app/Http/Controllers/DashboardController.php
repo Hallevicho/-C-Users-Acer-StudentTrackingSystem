@@ -1,5 +1,6 @@
 <?php
 
+// DashboardController.php
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
@@ -7,42 +8,37 @@ use Illuminate\Support\Facades\Auth;
 
 class DashboardController extends Controller
 {
-    public function __construct()
+    // Show the dashboard
+    public function show()
     {
-        $this->middleware('auth');
+        return view('dashboard');
     }
 
-    public function index()
-    {
-        $user = Auth::user();
-        return view('dashboard', ['user' => $user]);
-    }
-
+    // Update user profile
     public function update(Request $request)
     {
-        $user = auth()->user();
-        $user->update($request->only(['firstname', 'lastname', 'middlename', 'course', 'school']));
-        return redirect()->route('dashboard')->with('success', 'Info updated!');
-    }
-
-    public function clearFields()
-    {
-        $user = auth()->user();
-        $user->update([
-            'firstname' => null,
-            'lastname' => null,
-            'middlename' => null,
-            'course' => null,
-            'school' => null,
+        // Validate incoming data
+        $validated = $request->validate([
+            'firstname' => 'required|string|max:255',
+            'middlename' => 'nullable|string|max:255',
+            'lastname' => 'required|string|max:255',
+            'course' => 'required|string|max:255',
+            'school' => 'required|string|max:255',
         ]);
-        return redirect()->route('dashboard')->with('success', 'Fields cleared.');
-    }
 
-    public function destroy()
-    {
-        $user = auth()->user();
-        $user->delete();
-        return redirect('/')->with('success', 'Account deleted.');
+        // Get the authenticated user
+        $user = Auth::user();
+
+        // Update the user details
+        $user->update([
+            'firstname' => $validated['firstname'],
+            'middlename' => $validated['middlename'],
+            'lastname' => $validated['lastname'],
+            'course' => $validated['course'],
+            'school' => $validated['school'],
+        ]);
+
+        // Return a success message (or redirect back with a success notification)
+        return back()->with('success', 'Profile updated successfully!');
     }
 }
-

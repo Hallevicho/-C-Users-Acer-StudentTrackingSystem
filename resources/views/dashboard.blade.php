@@ -64,7 +64,7 @@
             </div>
         </div>
 
-        <div class="mb-8 bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4 rounded-md shadow-md" role="alert">
+        <div class="mb-8 bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4 rounded-md shadow-md" role="alert" id="attendance-info-box">
             <p class="font-semibold text-lg">Section/Dept Time Stamp Schedule</p>
         </div>
 
@@ -74,7 +74,7 @@
                 <option value="section1">Section 1</option>
                 <option value="section2">Section 2</option>
                 <option value="section3">Section 3</option>
-                </select>
+            </select>
             <button id="take-attendance-button" class="bg-green-600 hover:bg-green-700 text-white font-bold py-4 px-8 rounded-lg focus:outline-none focus:shadow-outline text-xl">
                 Take Attendance
             </button>
@@ -85,8 +85,13 @@
                 Logout
             </button>
         </div>
-        
-        <div id="timestamp-display" class="mt-6 text-gray-600 text-lg"></div>
+
+        <div id="timestamp-display" class="mt-6 text-gray-600 text-lg flex justify-between items-center">
+            <span id="timestamp-text"></span>
+            <button id="delete-attendance-button" class="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-lg focus:outline-none focus:shadow-outline text-md hidden">
+                Delete Attendance
+            </button>
+        </div>
 
     </div>
 
@@ -141,11 +146,15 @@
             const takeAttendanceButton = document.getElementById('take-attendance-button');
             const sectionSelect = document.getElementById('section-select');
             const timestampDisplay = document.getElementById('timestamp-display');
+            const timestampText = document.getElementById('timestamp-text');
+            const deleteAttendanceButton = document.getElementById('delete-attendance-button');
             const editProfileButton = document.getElementById('edit-profile-button');
             const dashboardContainer = document.getElementById('dashboard-container');
             const editProfileForm = document.getElementById('edit-profile-form');
             const cancelEditButton = document.getElementById('cancel-edit-button');
             const editForm = document.getElementById('edit-form');
+            const attendanceInfoBox = document.getElementById('attendance-info-box');
+
 
             displayStudentId.textContent = "12345";
             displayFirstName.textContent = "Jane";
@@ -161,6 +170,8 @@
             editCourseInput.value = displayCourse.textContent;
             editSchoolInput.value = displaySchool.textContent;
 
+            let attendanceData = null;
+
             takeAttendanceButton.addEventListener('click', function() {
                 const studentId = "12345";
                 const timestamp = new Date().toLocaleString();
@@ -171,7 +182,10 @@
                     return;
                 }
 
-                timestampDisplay.textContent = `Attendance taken at: ${timestamp}`;
+                timestampText.textContent = `Attendance taken at: ${timestamp}  Section: ${section}`;
+                timestampDisplay.classList.remove('hidden');
+                deleteAttendanceButton.classList.remove('hidden');
+                attendanceData = { student_id: studentId, section: section, timestamp: timestamp };
                 console.log(`Attendance taken for Student ID: ${studentId}, Section: ${section}, at ${timestamp}`);
                 alert(`Attendance taken! Check console and the page for the timestamp. (Student ID: ${studentId}, Section: ${section}, Time: ${timestamp})`);
 
@@ -191,6 +205,8 @@
                 .then(data => {
                     if (data.success) {
                         alert('Attendance recorded successfully!');
+                         // Clear the section selection after successful attendance recording.
+                        sectionSelect.value = "";
                     } else {
                         alert('Error recording attendance: ' + data.message);
                     }
@@ -199,7 +215,43 @@
                     console.error('Error:', error);
                     alert('An error occurred while recording attendance.');
                 });
-                
+            });
+
+            deleteAttendanceButton.addEventListener('click', function() {
+                if (!attendanceData) {
+                    alert("No attendance record to delete.");
+                    return;
+                }
+                timestampText.textContent = '';
+                deleteAttendanceButton.classList.add('hidden');
+                alert('Attendance record deleted!  (Check console for deleted data)');
+                console.log('Deleted attendance:', attendanceData);
+
+                fetch('/api/attendance/delete', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                    },
+                    body: JSON.stringify({
+                        student_id: attendanceData.student_id,
+                        section: attendanceData.section,
+                        timestamp: attendanceData.timestamp
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert('Attendance deleted from database successfully!');
+                    } else {
+                        alert('Error deleting attendance: ' + data.message);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('An error occurred while deleting attendance.');
+                });
+                attendanceData = null;
             });
 
             editProfileButton.addEventListener('click', function() {
@@ -226,46 +278,6 @@
                 editProfileForm.classList.add('hidden');
 
                 alert('Profile updated successfully!');
-
-                // In a real application, you would also send this updated data to your Laravel backend using AJAX.
-                /*
-                fetch('/api/profile/update', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRF-TOKEN': '{{ csrf_token() }}'
-                    },
-                    body: JSON.stringify({
-                        student_id: editStudentIdInput.value,
-                        first_name: editFirstNameInput.value,
-                        middle_name: editMiddleNameInput.value,
-                        last_name: editLastNameInput.value,
-                        course: editCourseInput.value,
-                        school: editSchoolInput.value
-                    })
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        alert('Profile updated successfully!');
-                         // Update the displayed information
-                        displayStudentId.textContent = editStudentIdInput.value;
-                        displayFirstName.textContent = editFirstNameInput.value;
-                        displayMiddleName.textContent = editMiddleNameInput.value;
-                        displayLastName.textContent = editLastNameInput.value;
-                        displayCourse.textContent = editCourseInput.value;
-                        displaySchool.textContent = editSchoolInput.value;
-                        dashboardContainer.classList.remove('hidden');
-                        editProfileForm.classList.add('hidden');
-                    } else {
-                        alert('Error updating profile: ' + data.message);
-                    }
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    alert('An error occurred while updating the profile.');
-                });
-                */
             });
 
             document.querySelector('button.bg-red-600').addEventListener('click', function() {

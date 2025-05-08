@@ -28,8 +28,8 @@ Route::get('/create-account', function () {
 })->name('create.account');
 
 // ✅ Register routes
-Route::get('/register', [RegisterController::class, 'showRegistrationForm'])->name('register'); // Changed 'create' to 'showRegistrationForm'
-Route::post('/register', [RegisterController::class, 'register']); // Ensured 'register' method is used here
+Route::get('/register', [RegisterController::class, 'showRegistrationForm'])->name('register');
+Route::post('/register', [RegisterController::class, 'register'])->name('register.submit'); // Ensure the correct route for registration
 
 // ✅ Login routes (outside auth middleware)
 Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');
@@ -39,7 +39,7 @@ Route::post('/login', [LoginController::class, 'login'])->name('login.submit');
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
 // ✅ Authenticated routes
-Route::middleware(['auth'])->group(function () {
+// Route::middleware(['auth'])->group(function () {
     Route::get('/dashboard', function () {
         return view('dashboard');
     })->name('dashboard');
@@ -47,4 +47,4 @@ Route::middleware(['auth'])->group(function () {
     Route::put('/dashboard/clear-fields', [DashboardController::class, 'clearfields'])->name('dashboard.clearfields');
     Route::put('/dashboard/update', [DashboardController::class, 'update'])->name('dashboard.update');
     Route::delete('/dashboard/delete', [DashboardController::class, 'destroy'])->name('dashboard.destroy');
-});
+// });

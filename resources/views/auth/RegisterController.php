@@ -4,52 +4,42 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
-use App\Models\User;
-use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Validator;
 
-class RegisterController extends Controller
+class LoginController extends Controller
 {
-    /**
-     * Show the registration form.
-     *
-     * @return \Illuminate\View\View
-     */
-    public function showRegistrationForm()
+    // Show login form
+    public function showLoginForm()
     {
-        return view('auth.register'); // Ensure this view exists
+        return view('auth.login'); // Make sure this Blade view exists
     }
 
-    /**
-     * Handle the registration request.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\RedirectResponse
-     */
-    public function register(Request $request)
+    // Handle login logic
+    public function login(Request $request)
     {
-        // Validate the incoming registration data
-        $request->validate([
-            'firstname' => 'required|string|max:255',
-            'lastname' => 'required|string|max:255',
-            'username' => 'required|string|max:255|unique:users',
-            'email' => 'required|email|max:255|unique:users',
-            'password' => 'required|string|min:6|confirmed',
+        // Validate input
+        $validator = Validator::make($request->all(), [
+            'email' => ['required', 'email'],
+            'password' => ['required', 'string'],
         ]);
 
-        // Create the new user in the database
-        $user = User::create([
-            'firstname' => $request->firstname,
-            'lastname' => $request->lastname,
-            'username' => $request->username,
-            'email' => $request->email,
-            'password' => Hash::make($request->password),
-        ]);
+        if ($validator->fails()) {
+            return back()->withErrors($validator)->withInput();
+        }
 
-        // Log the user in immediately after registration
-        Auth::login($user);
+        // Attempt to log the user in
+        if (Auth::attempt($request->only('email', 'password'))) {
+            // Regenerate session to prevent session fixation
+            $request->session()->regenerate();
 
-        // Redirect to the dashboard after successful registration
-        return redirect()->route('dashboard');
+            // Redirect to intended or dashboard
+            return redirect()->intended(route('dashboard'));
+        }
+
+        // Authentication failed
+        return back()->withErrors([
+            'email' => 'The provided credentials do not match our records.',
+        ])->withInput();
     }
 }

@@ -41,37 +41,10 @@
         .password-input-container {
             position: relative;
             display: flex;
-            flex-direction: column; /* Stack label and input */
-            align-items: flex-start; /* Align items to the start (left) */
+            flex-direction: column;
+            align-items: flex-start;
             width: 100%;
             margin-bottom: 1.5rem;
-        }
-        #password, #confirm-password {
-            flex: 1;
-            margin-right: 0;
-        }
-        .password-toggle-button {
-            position: absolute;
-            right: 0.75rem;
-            top: 50%;
-            transform: translateY(-50%);
-            background: none;
-            border: none;
-            cursor: pointer;
-            padding: 0.25rem;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        .password-toggle-icon {
-            width: 1rem;
-            height: 1rem;
-            color: #6b7280;
-            transition: transform 0.2s ease-in-out, color 0.2s ease-in-out; /* Smooth transition */
-        }
-        .password-toggle-icon.active {
-            transform: scale(1.2); /* Enlarge slightly when active */
-            color: #4f46e5; /* Change color when active */
         }
         .password-input-wrapper {
             position: relative;
@@ -79,9 +52,7 @@
             align-items: center;
             width: 100%;
         }
-
-        #password,
-        #confirm-password {
+        #password, #confirm-password {
             flex: 1;
             padding-right: 2.5rem;
             border-radius: 0.5rem;
@@ -90,7 +61,6 @@
             font-size: 1rem;
             margin-bottom: 0;
         }
-
         .password-toggle-button {
             position: absolute;
             right: 0.75rem;
@@ -105,18 +75,22 @@
             justify-content: center;
             z-index: 10;
         }
-
         .password-toggle-icon {
             width: 1rem;
             height: 1rem;
             color: #6b7280;
+            transition: transform 0.2s ease-in-out, color 0.2s ease-in-out;
+        }
+        .password-toggle-icon.active {
+            transform: scale(1.2);
+            color: #4f46e5;
         }
     </style>
 </head>
 <body class="bg-gradient-to-br from-blue-50 to-purple-100 p-8 flex items-center justify-center min-h-screen">
     <div class="container max-w-2xl mx-auto bg-white shadow-xl rounded-xl p-12">
         <h1 class="text-2xl font-semibold text-gray-800 mb-4">Registration</h1>
-        <form method="POST" action="{{ route('register') }}" id="registration-form" class="space-y-6">
+        <form method="POST" action="{{ route('register.submit') }}" id="registration-form" class="space-y-6">
             @csrf
             <div>
                 <label for="user-type" class="info-label">User Type:</label>
@@ -157,7 +131,7 @@
                 <div class="password-input-wrapper">
                     <input type="password" id="password" name="password" class="input-field" placeholder="Enter your Password">
                     <button type="button" class="password-toggle-button" id="password-toggle-button">
-                        <svg xmlns="http://www.w3.org/2000/svg"  viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="password-toggle-icon" id="password-toggle-icon-svg">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="password-toggle-icon" id="password-toggle-icon-svg">
                             <path d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0z" />
                             <path d="M3 12s3-5 9-5 9 5 9 5-3 5-9 5-9-5-9-5z" />
                         </svg>
@@ -170,7 +144,7 @@
                 <div class="password-input-wrapper">
                     <input type="password" id="confirm-password" name="confirm_password" class="input-field" placeholder="Confirm your Password">
                     <button type="button" class="password-toggle-button" id="confirm-password-toggle-button">
-                        <svg xmlns="http://www.w3.org/2000/svg"  viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="password-toggle-icon" id="confirm-password-toggle-icon-svg">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="password-toggle-icon" id="confirm-password-toggle-icon-svg">
                             <path d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0z" />
                             <path d="M3 12s3-5 9-5 9 5 9 5-3 5-9 5-9-5-9-5z" />
                         </svg>
@@ -220,9 +194,29 @@
                 confirmPasswordToggleIconSvg.classList.toggle('active', isConfirmPasswordVisible);
             });
 
-            // Optional: You can also add a client-side validation before form submission
             registrationForm.addEventListener('submit', (event) => {
-                // You can call your JS validation functions here
+                event.preventDefault();
+
+                const data = {
+                    user_type: document.getElementById('user-type').value,
+                    student_id: document.getElementById('student-id').value,
+                    first_name: document.getElementById('first-name').value,
+                    middle_name: document.getElementById('middle-name').value,
+                    last_name: document.getElementById('last-name').value,
+                    email: document.getElementById('email').value,
+                    password: document.getElementById('password').value,
+                    confirm_password: document.getElementById('confirm-password').value,
+                    course: document.getElementById('course').value,
+                    school: document.getElementById('school').value,
+                };
+
+                if (data.password !== data.confirm_password) {
+                    alert("Passwords do not match!");
+                    return;
+                }
+
+                localStorage.setItem("userData", JSON.stringify(data));
+                window.location.href = "/login";
             });
         });
     </script>
