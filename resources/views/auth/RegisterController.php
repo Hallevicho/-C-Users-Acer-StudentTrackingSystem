@@ -3,43 +3,35 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
+use App\Models\User;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Hash;
 
-class LoginController extends Controller
+class RegisterController extends Controller
 {
-    // Show login form
-    public function showLoginForm()
+    public function showRegistrationForm()
     {
-        return view('auth.login'); // Make sure this Blade view exists
+        return view('auth.register');
     }
 
-    // Handle login logic
-    public function login(Request $request)
+    public function register(Request $request)
     {
-        // Validate input
-        $validator = Validator::make($request->all(), [
-            'email' => ['required', 'email'],
-            'password' => ['required', 'string'],
+        $validated = $request->validate([
+            'student_id' => ['required', 'string', 'unique:users,student_id'],
+            'first_name' => ['required', 'string', 'max:255'],
+            'last_name' => ['required', 'string', 'max:255'],
+            'email' => ['required', 'email', 'unique:users,email'],
+            'password' => ['required', 'string', 'confirmed', 'min:8'],
         ]);
 
-        if ($validator->fails()) {
-            return back()->withErrors($validator)->withInput();
-        }
+        User::create([
+            'student_id' => $validated['student_id'],
+            'first_name' => $validated['first_name'],
+            'last_name' => $validated['last_name'],
+            'email' => $validated['email'],
+            'password' => Hash::make($validated['password']),
+        ]);
 
-        // Attempt to log the user in
-        if (Auth::attempt($request->only('email', 'password'))) {
-            // Regenerate session to prevent session fixation
-            $request->session()->regenerate();
-
-            // Redirect to intended or dashboard
-            return redirect()->intended(route('dashboard'));
-        }
-
-        // Authentication failed
-        return back()->withErrors([
-            'email' => 'The provided credentials do not match our records.',
-        ])->withInput();
+        return redirect()->route('login')->with('success', 'Account created successfully! Please log in.');
     }
 }
